@@ -8,6 +8,7 @@ function CommonButton(props) {
                 onPress={props.clicked.bind(this, props.id)}
                 style={({ pressed }) => pressed ? [styles.buttonPressed, props.styles] : props.styles}
             >
+                {props.icon}
                 <Text style={props.textStyle}>{props.text}</Text>
             </Pressable>
         </View>

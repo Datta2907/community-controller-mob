@@ -1,8 +1,12 @@
 import { View, TextInput, Text, StyleSheet, Keyboard } from "react-native"
 import CommonButton from "../components/common-button"
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faEnvelope, faUnlock } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
+import { AntDesign } from "@expo/vector-icons";
+import { MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
+import Variables from "../common/constants";
+import SelectDropdown from "react-native-select-dropdown";
+import { Entypo } from '@expo/vector-icons';
 
 export function LoginComponent() {
     let [currentTab, setCurrentTab] = useState(0);
@@ -39,16 +43,27 @@ export function LoginComponent() {
             {currentTab ?
                 //signup using google auth else using otp then register for a particular committee
                 <View style={styles.inputBox}>
-                    <FontAwesomeIcon icon={faEnvelope} style={styles.icons} />
+                    <SelectDropdown buttonStyle={styles.dropDown} data={[{ name: "Velama Community", address: "pragathi nagar", state: "telangana" }, { name: "X community", address: "koti", state: "telanagana" }]}
+                        onSelect={(selectedItem, index) => { console.log(selectedItem, index) }}
+                        defaultButtonText="Select Community"
+                        buttonTextAfterSelection={(selectedItem) => { return selectedItem.name }}
+                        rowTextForSelection={(selectedItem) => { return selectedItem.name + selectedItem.address }}
+                        search={true}
+                        searchPlaceHolder="Search Here..."
+                        dropdownIconPosition="left"
+                        renderDropdownIcon={() => { return <Entypo name="location-pin" size={18} color="black" /> }}
+                        renderSearchInputLeftIcon={() => { return <FontAwesome5 name="search-location" size={18} color="black" /> }}
+                    ></SelectDropdown>
+                    <MaterialIcons name="email" size={20} color="white" style={styles.icons} />
                     <TextInput
                         style={styles.credentialInputs}
                         placeholder="Email"
-                        placeholderTextColor={'#ffffff'}
+                        placeholderTextColor={Variables.colors.white}
                         autoCapitalize="none"
                         autoComplete="off"
                         autoCorrect={false}
                         multiline={false}
-                        selectionColor={'#ffffff'}
+                        selectionColor={Variables.colors.white}
                         keyboardType="email-address"
                     />
                     <CommonButton
@@ -60,32 +75,42 @@ export function LoginComponent() {
                         textStyle={styles.baseText}
                         hideRippleEffect={styles.hideRippleEffect}
                     ></CommonButton>
+                    <CommonButton
+                        clicked={signUp}
+                        text={'Sign Up With Google'}
+                        id={'SIGN_UP'}
+                        styles={styles.submitButton}
+                        rippleColor={'white'}
+                        textStyle={styles.baseText}
+                        hideRippleEffect={styles.hideRippleEffect}
+                        icon={<AntDesign name="google" size={20} color="white" />}
+                    ></CommonButton>
                 </View>
                 :
                 <View>
                     <View style={styles.inputBox}>
-                        <FontAwesomeIcon icon={faEnvelope} style={styles.icons} />
+                        <MaterialIcons name="email" size={20} color="white" style={styles.icons} />
                         <TextInput
                             style={styles.credentialInputs}
                             placeholder="Email"
-                            placeholderTextColor={'#ffffff'}
+                            placeholderTextColor={Variables.colors.white}
                             autoCapitalize="none"
                             autoComplete="off"
                             autoCorrect={false}
                             multiline={false}
-                            selectionColor={'#ffffff'}
+                            selectionColor={Variables.colors.white}
                             keyboardType="email-address"
                         />
-                        <FontAwesomeIcon icon={faUnlock} style={styles.icons} />
+                        <FontAwesome5 name="unlock" size={20} color="white" style={styles.icons} />
                         <TextInput
                             style={styles.credentialInputs}
                             placeholder="Password"
-                            placeholderTextColor={'#ffffff'}
+                            placeholderTextColor={Variables.colors.white}
                             autoCapitalize="none"
                             autoComplete="off"
                             autoCorrect={false}
                             multiline={false}
-                            selectionColor={'#ffffff'}
+                            selectionColor={Variables.colors.white}
                         />
                     </View>
                     <CommonButton
@@ -105,8 +130,8 @@ export function LoginComponent() {
 
 const styles = StyleSheet.create({
     baseText: {
-        color: '#ffffff',
-        fontFamily: 'LibreFranklin_400Regular'
+        color: Variables.colors.white,
+        fontFamily: Variables.fontStyle
     },
     heading: {
         fontSize: 50,
@@ -129,10 +154,6 @@ const styles = StyleSheet.create({
         marginTop: "20%",
         marginBottom: "10%",
     },
-    loginButtons: {
-        backgroundColor: 'rgba(52, 52, 52, 0.8)',
-        fontSize: 100
-    },
     pressedItem: {
         opacity: 0.5,
         paddingTop: 10,
@@ -140,7 +161,7 @@ const styles = StyleSheet.create({
     tabSelected: {
         opacity: 1,
         borderBottomWidth: 1,
-        borderBottomColor: '#ffffff',
+        borderBottomColor: Variables.colors.white,
         paddingBottom: 3,
         paddingTop: 10,
     },
@@ -151,29 +172,35 @@ const styles = StyleSheet.create({
         opacity: 0.5,
         height: 70,
         borderBottomWidth: 1,
-        borderColor: "#ffffff",
-        color: '#ffffff',
+        borderColor: Variables.colors.white,
+        color: Variables.colors.white,
         textAlignVertical: 'center',
         textAlign: 'center',
         paddingLeft: 30,
     },
     icons: {
-        color: '#ffffff',
+        color: Variables.colors.white,
         position: 'relative',
         top: 45,
         left: 10
     },
     submitButton: {
-        backgroundColor: "green",
-        color: "#ffffff",
+        backgroundColor: Variables.colors.green,
+        color: Variables.colors.white,
         alignItems: "center",
         padding: 20,
-        borderRadius: 10
+        borderRadius: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-around'
     },
     hideRippleEffect: {
         overflow: 'hidden',
         borderRadius: 30,
         marginTop: 50
+    },
+    dropDown: {
+        width: "100%",
+        borderRadius: 5
     }
 })
 export default LoginComponent
