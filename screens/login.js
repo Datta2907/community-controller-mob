@@ -1,24 +1,45 @@
 import { View, TextInput, Text, StyleSheet, Keyboard } from "react-native"
 import CommonButton from "../components/common-button"
 import { useState } from "react";
-import { AntDesign } from "@expo/vector-icons";
-import { MaterialIcons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome5, AntDesign, Entypo } from '@expo/vector-icons';
 import Variables from "../common/constants";
 import SelectDropdown from "react-native-select-dropdown";
-import { Entypo } from '@expo/vector-icons';
+import SuccessAnimation from "../components/success-animation";
+
+const Tabs = {
+    first_tab: 1,
+    second_tab: 2,
+    third_tab: 3,
+    fourth_tab: 4,
+    fifth_tab: 5,
+}
 
 export function LoginComponent() {
-    let [currentTab, setCurrentTab] = useState(0);
+    let [currentTab, setCurrentTab] = useState(1);
     function signIn(id) {
-        setCurrentTab(0);
+        setCurrentTab(1);
         console.log("Sign in clicked", id);
     }
 
     function signUp(id) {
-        setCurrentTab(1);
+        setCurrentTab(2);
         Keyboard.dismiss();
         console.log("SIgn up clicked", id);
+    }
+
+    function login() {
+    }
+
+    function signUpWithGoogle() {
+        setCurrentTab(4)
+    }
+
+    function sendCode() {
+        setCurrentTab(3);
+    }
+
+    function verifyCode() {
+        setCurrentTab(4);
     }
 
     return (
@@ -29,64 +50,19 @@ export function LoginComponent() {
                     clicked={signIn}
                     text={'SIGN IN'}
                     id={'SIGN_IN'}
-                    styles={currentTab == 0 ? styles.tabSelected : styles.pressedItem}
+                    styles={currentTab == 1 ? styles.tabSelected : styles.pressedItem}
                     textStyle={styles.baseText}
                 ></CommonButton>
                 <CommonButton
                     clicked={signUp}
                     text={'SIGN UP'}
                     id={'SIGN_UP'}
-                    styles={currentTab == 1 ? styles.tabSelected : styles.pressedItem}
+                    styles={currentTab > 1 ? styles.tabSelected : styles.pressedItem}
                     textStyle={styles.baseText}
                 ></CommonButton>
             </View>
-            {currentTab ?
+            {currentTab == Tabs.first_tab ?
                 //signup using google auth else using otp then register for a particular committee
-                <View style={styles.inputBox}>
-                    <SelectDropdown buttonStyle={styles.dropDown} data={[{ name: "Velama Community", address: "pragathi nagar", state: "telangana" }, { name: "X community", address: "koti", state: "telanagana" }]}
-                        onSelect={(selectedItem, index) => { console.log(selectedItem, index) }}
-                        defaultButtonText="Select Community"
-                        buttonTextAfterSelection={(selectedItem) => { return selectedItem.name }}
-                        rowTextForSelection={(selectedItem) => { return selectedItem.name + selectedItem.address }}
-                        search={true}
-                        searchPlaceHolder="Search Here..."
-                        dropdownIconPosition="left"
-                        renderDropdownIcon={() => { return <Entypo name="location-pin" size={18} color="black" /> }}
-                        renderSearchInputLeftIcon={() => { return <FontAwesome5 name="search-location" size={18} color="black" /> }}
-                    ></SelectDropdown>
-                    <MaterialIcons name="email" size={20} color="white" style={styles.icons} />
-                    <TextInput
-                        style={styles.credentialInputs}
-                        placeholder="Email"
-                        placeholderTextColor={Variables.colors.white}
-                        autoCapitalize="none"
-                        autoComplete="off"
-                        autoCorrect={false}
-                        multiline={false}
-                        selectionColor={Variables.colors.white}
-                        keyboardType="email-address"
-                    />
-                    <CommonButton
-                        clicked={signUp}
-                        text={'Send Verification Code'}
-                        id={'SIGN_UP'}
-                        styles={styles.submitButton}
-                        rippleColor={'white'}
-                        textStyle={styles.baseText}
-                        hideRippleEffect={styles.hideRippleEffect}
-                    ></CommonButton>
-                    <CommonButton
-                        clicked={signUp}
-                        text={'Sign Up With Google'}
-                        id={'SIGN_UP'}
-                        styles={styles.submitButton}
-                        rippleColor={'white'}
-                        textStyle={styles.baseText}
-                        hideRippleEffect={styles.hideRippleEffect}
-                        icon={<AntDesign name="google" size={20} color="white" />}
-                    ></CommonButton>
-                </View>
-                :
                 <View>
                     <View style={styles.inputBox}>
                         <MaterialIcons name="email" size={20} color="white" style={styles.icons} />
@@ -114,15 +90,93 @@ export function LoginComponent() {
                         />
                     </View>
                     <CommonButton
-                        clicked={signIn}
-                        text={'SIGN IN'}
-                        id={'SIGN_IN'}
+                        clicked={login}
+                        text={'Login'}
+                        id={'LOGIN'}
                         styles={styles.submitButton}
                         textStyle={styles.baseText}
                         rippleColor={'white'}
                         hideRippleEffect={styles.hideRippleEffect}
                     ></CommonButton>
                 </View>
+                : currentTab == Tabs.second_tab ?
+                    <View style={styles.inputBox}>
+                        <SelectDropdown buttonStyle={styles.dropDown} data={[{ name: "Velama Community", address: "pragathi nagar", state: "telangana" }, { name: "X community", address: "koti", state: "telanagana" }]}
+                            onSelect={(selectedItem, index) => { console.log(selectedItem, index) }}
+                            defaultButtonText="Select Community"
+                            buttonTextAfterSelection={(selectedItem) => { return selectedItem.name }}
+                            rowTextForSelection={(selectedItem) => { return selectedItem.name + selectedItem.address }}
+                            search={true}
+                            searchPlaceHolder="Search Here..."
+                            dropdownIconPosition="left"
+                            renderDropdownIcon={() => { return <Entypo name="location-pin" size={18} color="black" /> }}
+                            renderSearchInputLeftIcon={() => { return <FontAwesome5 name="search-location" size={18} color="black" /> }}
+                        ></SelectDropdown>
+                        <MaterialIcons name="email" size={20} color="white" style={styles.icons} />
+                        <TextInput
+                            style={styles.credentialInputs}
+                            placeholder="Email"
+                            placeholderTextColor={Variables.colors.white}
+                            autoCapitalize="none"
+                            autoComplete="off"
+                            autoCorrect={false}
+                            multiline={false}
+                            selectionColor={Variables.colors.white}
+                            keyboardType="email-address"
+                        />
+                        <CommonButton
+                            clicked={sendCode}
+                            text={'Send Verification Code'}
+                            id={'SEND_CODE'}
+                            styles={styles.submitButton}
+                            rippleColor={'white'}
+                            textStyle={styles.baseText}
+                            hideRippleEffect={styles.hideRippleEffect}
+                        ></CommonButton>
+                        <CommonButton
+                            clicked={signUpWithGoogle}
+                            text={'Sign Up With Google'}
+                            id={'SIGN_UP_GOOGLE'}
+                            styles={styles.submitButton}
+                            rippleColor={'white'}
+                            textStyle={styles.baseText}
+                            hideRippleEffect={styles.hideRippleEffect}
+                            icon={<AntDesign name="google" size={20} color="white" />}
+                        ></CommonButton>
+                    </View>
+                    : currentTab == Tabs.third_tab ?
+                        <View style={styles.inputBox}>
+                            <Ionicons name="keypad" size={20} style={styles.icons} color="white" />
+                            <TextInput
+                                style={styles.credentialInputs}
+                                placeholder="Enter Code"
+                                placeholderTextColor={Variables.colors.white}
+                                autoCapitalize="none"
+                                autoComplete="off"
+                                autoCorrect={false}
+                                multiline={false}
+                                selectionColor={Variables.colors.white}
+                                keyboardType='number-pad'
+                            />
+                            <CommonButton
+                                clicked={verifyCode}
+                                text={'Verify'}
+                                id={'VERIFY_CODE'}
+                                styles={styles.submitButton}
+                                rippleColor={'white'}
+                                textStyle={styles.baseText}
+                                hideRippleEffect={styles.hideRippleEffect}
+                            ></CommonButton>
+                        </View> : currentTab == Tabs.fourth_tab ?
+                            <View style={styles.scrollContainer}>
+                                <SuccessAnimation
+                                    path={require('../assets/success-green-circle.json')}
+                                    styles={styles.emailVerified}
+                                    autoPlay={true}
+                                    loop={false}
+                                ></SuccessAnimation>
+                            </View> :
+                            <Text></Text>
             }
         </View>
     )
@@ -139,6 +193,9 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         flex: 1
+    },
+    emailVerified: {
+        height: 200
     },
     container: {
         flex: 1,

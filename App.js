@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, KeyboardAvoidingView, ScrollView } from 'react-native';
 import LoginComponent from './screens/login';
-import { LinearGradient } from "expo-linear-gradient";
 import { useFonts, LibreFranklin_400Regular } from '@expo-google-fonts/libre-franklin';
+import Variables from './common/constants';
 
 export default function App() {
   let [fontsLoaded, fontError] = useFonts({
@@ -13,9 +13,8 @@ export default function App() {
     return null;
   }
   return (
-    <LinearGradient
-      style={styles.scrollContainer}
-      colors={['#24297A', '#333994', '#424799']}>
+    <View
+      style={styles.mainContainer}>
       <StatusBar style='light' />
       <KeyboardAvoidingView behavior="padding" style={styles.scrollContainer} enabled>
         <ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'}>
@@ -24,11 +23,15 @@ export default function App() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Variables.colors.blue
+  },
   scrollContainer: {
     flex: 1
   },
