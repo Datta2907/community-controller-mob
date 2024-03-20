@@ -5,41 +5,53 @@ import { MaterialIcons, Ionicons, FontAwesome5, AntDesign, Entypo } from '@expo/
 import Variables from "../common/constants";
 import SelectDropdown from "react-native-select-dropdown";
 import SuccessAnimation from "../components/success-animation";
+import { sendVerificationCode, verifyCode } from "../services/auth";
 
-const Tabs = {
-    first_tab: 1,
-    second_tab: 2,
-    third_tab: 3,
-    fourth_tab: 4,
-    fifth_tab: 5,
+const screens = {
+    login: "login",
+    enterEmail: "enterEmail",
+    verifyCode: "verifyCode",
+    loading: "loading",
+    success: "success",
 }
 
 export function LoginComponent() {
-    let [currentTab, setCurrentTab] = useState(1);
+    let [currentTab, setCurrentTab] = useState(screens.login);
+    let [email, setEmail] = useState('');
+    let [otp, setOtp] = useState('');
     function signIn(id) {
-        setCurrentTab(1);
-        console.log("Sign in clicked", id);
+        setCurrentTab(screens.login);
     }
 
     function signUp(id) {
-        setCurrentTab(2);
-        Keyboard.dismiss();
-        console.log("SIgn up clicked", id);
+        setCurrentTab(screens.enterEmail);
     }
 
     function login() {
     }
 
     function signUpWithGoogle() {
-        setCurrentTab(4)
+        setCurrentTab(screens.loading);
+        setTimeout(() => {
+            setCurrentTab(screens.success);
+        }, 5000);
     }
 
-    function sendCode() {
-        setCurrentTab(3);
+    async function sendCode() {
+        Keyboard.dismiss();
+        setCurrentTab(screens.loading);
+        const res = await sendVerificationCode(email);
+        if (res.success) {
+            setCurrentTab(screens.verifyCode);
+        }
     }
 
-    function verifyCode() {
-        setCurrentTab(4);
+    async function verifyOtp() {
+        const res = await verifyCode(email, otp);
+        setCurrentTab(screens.loading);
+        if (res.success) {
+            setCurrentTab(screens.success);
+        }
     }
 
     return (
@@ -50,18 +62,18 @@ export function LoginComponent() {
                     clicked={signIn}
                     text={'SIGN IN'}
                     id={'SIGN_IN'}
-                    styles={currentTab == 1 ? styles.tabSelected : styles.pressedItem}
+                    styles={currentTab == screens.login ? styles.tabSelected : styles.pressedItem}
                     textStyle={styles.baseText}
                 ></CommonButton>
                 <CommonButton
                     clicked={signUp}
                     text={'SIGN UP'}
                     id={'SIGN_UP'}
-                    styles={currentTab > 1 ? styles.tabSelected : styles.pressedItem}
+                    styles={currentTab != screens.login ? styles.tabSelected : styles.pressedItem}
                     textStyle={styles.baseText}
                 ></CommonButton>
             </View>
-            {currentTab == Tabs.first_tab ?
+            {currentTab == screens.login ?
                 //signup using google auth else using otp then register for a particular committee
                 <View>
                     <View style={styles.inputBox}>
@@ -99,7 +111,7 @@ export function LoginComponent() {
                         hideRippleEffect={styles.hideRippleEffect}
                     ></CommonButton>
                 </View>
-                : currentTab == Tabs.second_tab ?
+                : currentTab == screens.enterEmail ?
                     <View style={styles.inputBox}>
                         <SelectDropdown buttonStyle={styles.dropDown} data={[{ name: "Velama Community", address: "pragathi nagar", state: "telangana" }, { name: "X community", address: "koti", state: "telanagana" }]}
                             onSelect={(selectedItem, index) => { console.log(selectedItem, index) }}
@@ -123,6 +135,8 @@ export function LoginComponent() {
                             multiline={false}
                             selectionColor={Variables.colors.white}
                             keyboardType="email-address"
+                            value={email}
+                            onChangeText={newText => setEmail(newText)}
                         />
                         <CommonButton
                             clicked={sendCode}
@@ -139,12 +153,12 @@ export function LoginComponent() {
                             id={'SIGN_UP_GOOGLE'}
                             styles={styles.submitButton}
                             rippleColor={'white'}
-                            textStyle={styles.baseText}
+                            textStyle={[styles.baseText, styles.marginForIconOnLeft]}
                             hideRippleEffect={styles.hideRippleEffect}
                             icon={<AntDesign name="google" size={20} color="white" />}
                         ></CommonButton>
                     </View>
-                    : currentTab == Tabs.third_tab ?
+                    : currentTab == screens.verifyCode ?
                         <View style={styles.inputBox}>
                             <Ionicons name="keypad" size={20} style={styles.icons} color="white" />
                             <TextInput
@@ -157,9 +171,11 @@ export function LoginComponent() {
                                 multiline={false}
                                 selectionColor={Variables.colors.white}
                                 keyboardType='number-pad'
+                                value={otp}
+                                onChangeText={code => setOtp(code)}
                             />
                             <CommonButton
-                                clicked={verifyCode}
+                                clicked={verifyOtp}
                                 text={'Verify'}
                                 id={'VERIFY_CODE'}
                                 styles={styles.submitButton}
@@ -167,7 +183,15 @@ export function LoginComponent() {
                                 textStyle={styles.baseText}
                                 hideRippleEffect={styles.hideRippleEffect}
                             ></CommonButton>
-                        </View> : currentTab == Tabs.fourth_tab ?
+                        </View> : currentTab == screens.loading ?
+                            <View style={styles.scrollContainer}>
+                                <SuccessAnimation
+                                    path={require('../assets/loading.json')}
+                                    styles={styles.emailVerified}
+                                    autoPlay={true}
+                                    loop={true}
+                                ></SuccessAnimation>
+                            </View> :
                             <View style={styles.scrollContainer}>
                                 <SuccessAnimation
                                     path={require('../assets/success-green-circle.json')}
@@ -175,10 +199,9 @@ export function LoginComponent() {
                                     autoPlay={true}
                                     loop={false}
                                 ></SuccessAnimation>
-                            </View> :
-                            <Text></Text>
+                            </View>
             }
-        </View>
+        </View >
     )
 }
 
@@ -195,7 +218,7 @@ const styles = StyleSheet.create({
         flex: 1
     },
     emailVerified: {
-        height: 200
+        height: 300
     },
     container: {
         flex: 1,
@@ -248,7 +271,7 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 10,
         flexDirection: 'row',
-        justifyContent: 'space-around'
+        justifyContent: 'center'
     },
     hideRippleEffect: {
         overflow: 'hidden',
@@ -258,6 +281,9 @@ const styles = StyleSheet.create({
     dropDown: {
         width: "100%",
         borderRadius: 5
+    },
+    marginForIconOnLeft: {
+        marginLeft: 15
     }
 })
 export default LoginComponent
