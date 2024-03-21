@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { StyleSheet, View, KeyboardAvoidingView, ScrollView, StatusBar as statusBar } from 'react-native';
 import LoginComponent from './screens/login';
 import { useFonts, LibreFranklin_400Regular } from '@expo-google-fonts/libre-franklin';
 import Variables from './common/constants';
@@ -30,7 +30,8 @@ export default function App() {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: Variables.colors.blue
+    backgroundColor: Variables.colors.blue,
+    paddingTop: statusBar.currentHeight
   },
   scrollContainer: {
     flex: 1
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingTop: '30%',
+    paddingTop: '25%',
     paddingHorizontal: '10%',
     paddingBottom: '10%'
   }

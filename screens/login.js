@@ -1,11 +1,11 @@
 import { View, TextInput, Text, StyleSheet, Keyboard } from "react-native"
 import CommonButton from "../components/common-button"
 import { useState } from "react";
-import { MaterialIcons, Ionicons, FontAwesome5, AntDesign, Entypo } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome5, AntDesign, Entypo, MaterialCommunityIcons } from '@expo/vector-icons';
 import Variables from "../common/constants";
 import SelectDropdown from "react-native-select-dropdown";
 import SuccessAnimation from "../components/success-animation";
-import { sendVerificationCode, verifyCode } from "../services/auth";
+import { loginWithPassword, sendVerificationCode, verifyCode } from "../services/auth";
 
 const screens = {
     login: "login",
@@ -13,12 +13,25 @@ const screens = {
     verifyCode: "verifyCode",
     loading: "loading",
     success: "success",
+    register: "register",
+    otherState: "otherState"
 }
 
 export function LoginComponent() {
     let [currentTab, setCurrentTab] = useState(screens.login);
     let [email, setEmail] = useState('');
+    let [emailError, setEmailError] = useState('');
+    let [firstName, setFirstName] = useState('');
+    let [firstNameError, setFirstNameError] = useState('');
+    let [lastName, setLastName] = useState('');
+    let [lastNameError, setLastNameError] = useState('');
+    let [role, setRole] = useState('');
+    let [roleError, setRoleError] = useState('');
+    let [password, setPassword] = useState('');
+    let [verifyPassword, setVerifyPassword] = useState('');
+    let [passwordMatchError, setPasswordMatchError] = useState('');
     let [otp, setOtp] = useState('');
+
     function signIn(id) {
         setCurrentTab(screens.login);
     }
@@ -27,7 +40,48 @@ export function LoginComponent() {
         setCurrentTab(screens.enterEmail);
     }
 
-    function login() {
+    function validateEmail(newText) {
+        if (newText.match(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+            setEmailError('')
+        } else {
+            setEmailError('Invalid Email');
+        }
+        setEmail(newText)
+    }
+
+    function validateOnlyLetters(newText) {
+        return !/^[a-z]+$/i.test(newText);
+    }
+
+    async function login() {
+        Keyboard.dismiss();
+        setCurrentTab(screens.loading);
+        const res = await loginWithPassword(email, password);
+        if (res.success) {
+            setCurrentTab(screens.otherState);
+        }
+    }
+
+    async function register() {
+        Keyboard.dismiss();
+        if (role) {
+            setRoleError('');
+            if (password == verifyPassword) {
+                setCurrentTab(screens.loading);
+                setPasswordMatchError('');
+                const res = await register(firstName, lastName, role, email, password);
+                if (res.success) {
+                    setCurrentTab(screens.success);
+                    setTimeout(() => {
+                        setCurrentTab(screens.otherState);
+                    }, 2000);
+                }
+            } else {
+                setPasswordMatchError(`Passwords don't match!`);
+            }
+        } else {
+            setRoleError('Please select a role');
+        }
     }
 
     function signUpWithGoogle() {
@@ -50,7 +104,7 @@ export function LoginComponent() {
         const res = await verifyCode(email, otp);
         setCurrentTab(screens.loading);
         if (res.success) {
-            setCurrentTab(screens.success);
+            setCurrentTab(screens.register);
         }
     }
 
@@ -88,7 +142,12 @@ export function LoginComponent() {
                             multiline={false}
                             selectionColor={Variables.colors.white}
                             keyboardType="email-address"
+                            value={email}
+                            onChangeText={newText =>
+                                validateEmail(newText)
+                            }
                         />
+                        {emailError.length ? <Text style={styles.errorMessage}>{emailError}</Text> : <></>}
                         <FontAwesome5 name="unlock" size={20} color="white" style={styles.icons} />
                         <TextInput
                             style={styles.credentialInputs}
@@ -99,6 +158,8 @@ export function LoginComponent() {
                             autoCorrect={false}
                             multiline={false}
                             selectionColor={Variables.colors.white}
+                            value={password}
+                            onChangeText={newText => setPassword(newText)}
                         />
                     </View>
                     <CommonButton
@@ -136,8 +197,9 @@ export function LoginComponent() {
                             selectionColor={Variables.colors.white}
                             keyboardType="email-address"
                             value={email}
-                            onChangeText={newText => setEmail(newText)}
+                            onChangeText={newText => validateEmail(newText)}
                         />
+                        {emailError.length ? <Text style={styles.errorMessage}>{emailError}</Text> : <></>}
                         <CommonButton
                             clicked={sendCode}
                             text={'Send Verification Code'}
@@ -191,15 +253,107 @@ export function LoginComponent() {
                                     autoPlay={true}
                                     loop={true}
                                 ></SuccessAnimation>
-                            </View> :
-                            <View style={styles.scrollContainer}>
-                                <SuccessAnimation
-                                    path={require('../assets/success-green-circle.json')}
-                                    styles={styles.emailVerified}
-                                    autoPlay={true}
-                                    loop={false}
-                                ></SuccessAnimation>
                             </View>
+                            :
+                            currentTab == screens.register ?
+                                <View>
+                                    <SelectDropdown buttonStyle={styles.dropDown} data={['Developer', 'President', 'Resident', 'Non-Resident', 'NA']}
+                                        onSelect={(selectedItem, index) => { setRole(selectedItem); setRoleError(''); }}
+                                        defaultButtonText="Select Role"
+                                        buttonTextAfterSelection={(selectedItem) => { return selectedItem }}
+                                        rowTextForSelection={(selectedItem) => { return selectedItem }}
+                                        search={true}
+                                        searchPlaceHolder="Search Here..."
+                                        dropdownIconPosition="left"
+                                        renderDropdownIcon={() => { return <MaterialIcons name="work" size={18} color="black" /> }}
+                                        renderSearchInputLeftIcon={() => { return <Ionicons name="search" size={18} color="black" /> }}
+                                    ></SelectDropdown>
+                                    {roleError.length ? <Text style={styles.errorMessage}>{roleError}</Text> : <></>}
+                                    <View style={styles.inputBox}>
+                                        <MaterialCommunityIcons name="account-arrow-left" size={24} color="white" style={styles.icons} />
+                                        <TextInput
+                                            style={styles.credentialInputs}
+                                            placeholder="FirstName"
+                                            placeholderTextColor={Variables.colors.white}
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            multiline={false}
+                                            selectionColor={Variables.colors.white}
+                                            keyboardType="ascii-capable"
+                                            value={firstName}
+                                            onChangeText={newText => {
+                                                setFirstName(newText);
+                                                validateOnlyLetters(newText) ? setFirstNameError('Invalid First Name') : setFirstNameError('')
+                                            }}
+                                        />
+                                        {firstNameError.length ? <Text style={styles.errorMessage}>{firstNameError}</Text> : <></>}
+                                        <MaterialCommunityIcons name="account-arrow-right" size={24} color="white" style={styles.icons} />
+                                        <TextInput
+                                            style={styles.credentialInputs}
+                                            placeholder="LastName"
+                                            placeholderTextColor={Variables.colors.white}
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            multiline={false}
+                                            selectionColor={Variables.colors.white}
+                                            keyboardType="ascii-capable"
+                                            value={lastName}
+                                            onChangeText={newText => {
+                                                setLastName(newText);
+                                                validateOnlyLetters(newText) ? setLastNameError('Invalid Last Name') : setLastNameError('')
+                                            }}
+                                        />
+                                        {lastNameError.length ? <Text style={styles.errorMessage}>{lastNameError}</Text> : <></>}
+                                        <FontAwesome5 name="unlock" size={20} color="white" style={styles.icons} />
+                                        <TextInput
+                                            style={styles.credentialInputs}
+                                            placeholder="Set New Password"
+                                            placeholderTextColor={Variables.colors.white}
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            multiline={false}
+                                            selectionColor={Variables.colors.white}
+                                            keyboardType="ascii-capable"
+                                            value={password}
+                                            onChangeText={newText => setPassword(newText)}
+                                        />
+                                        <FontAwesome5 name="unlock" size={20} color="white" style={styles.icons} />
+                                        <TextInput
+                                            style={styles.credentialInputs}
+                                            placeholder="Re-type New Password"
+                                            placeholderTextColor={Variables.colors.white}
+                                            autoCapitalize="none"
+                                            autoComplete="off"
+                                            autoCorrect={false}
+                                            multiline={false}
+                                            selectionColor={Variables.colors.white}
+                                            keyboardType="ascii-capable"
+                                            value={verifyPassword}
+                                            onChangeText={newText => setVerifyPassword(newText)}
+                                        />
+                                        {passwordMatchError.length ? <Text style={styles.errorMessage}>{passwordMatchError}</Text> : <></>}
+                                    </View>
+                                    <CommonButton
+                                        clicked={register}
+                                        text={'Register'}
+                                        id={'REGISTER'}
+                                        styles={styles.submitButton}
+                                        textStyle={styles.baseText}
+                                        rippleColor={'white'}
+                                        hideRippleEffect={styles.hideRippleEffect}
+                                    ></CommonButton>
+                                </View> : currentTab == screens.success ?
+                                    <View style={styles.scrollContainer}>
+                                        <SuccessAnimation
+                                            path={require('../assets/success-green-circle.json')}
+                                            styles={styles.emailVerified}
+                                            autoPlay={true}
+                                            loop={false}
+                                        ></SuccessAnimation>
+                                    </View> : <View></View>
             }
         </View >
     )
@@ -222,7 +376,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        marginTop: 20,
+        marginTop: 10,
         padding: 5,
         marginHorizontal: 20,
     },
@@ -284,6 +438,11 @@ const styles = StyleSheet.create({
     },
     marginForIconOnLeft: {
         marginLeft: 15
+    },
+    errorMessage: {
+        color: Variables.colors.red,
+        marginTop: 10,
+        marginLeft: 10
     }
 })
 export default LoginComponent
