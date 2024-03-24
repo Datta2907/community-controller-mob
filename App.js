@@ -1,10 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, KeyboardAvoidingView, ScrollView, StatusBar as statusBar } from 'react-native';
+import { StyleSheet, View, StatusBar as statusBar } from 'react-native';
 import LoginComponent from './screens/login';
 import { useFonts, LibreFranklin_400Regular } from '@expo-google-fonts/libre-franklin';
 import Variables from './common/constants';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 export default function App() {
+  const Stack = createNativeStackNavigator();
+
   let [fontsLoaded, fontError] = useFonts({
     LibreFranklin_400Regular
   });
@@ -16,13 +20,15 @@ export default function App() {
     <View
       style={styles.mainContainer}>
       <StatusBar style='light' />
-      <KeyboardAvoidingView behavior="padding" style={styles.scrollContainer} enabled>
-        <ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps={'handled'}>
-          <View style={styles.container}>
-            <LoginComponent />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName='Login' screenOptions={{ contentStyle: { backgroundColor: 'transparent' } }}>
+          <Stack.Screen
+            name='Login'
+            component={LoginComponent}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
     </View>
   );
 }
@@ -32,15 +38,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Variables.colors.blue,
     paddingTop: statusBar.currentHeight
-  },
-  scrollContainer: {
-    flex: 1
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingTop: '25%',
-    paddingHorizontal: '10%',
-    paddingBottom: '10%'
   }
 });
