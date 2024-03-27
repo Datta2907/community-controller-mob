@@ -7,7 +7,7 @@ export const loginWithPassword = async (email, password) => {
     return POST(manualAuthUrl + 'login', { email, password });
 }
 
-export const register = async (firstName, lastName, role, email, password) => {
+export const registerUser = async (firstName, lastName, role, email, password) => {
     return POST(manualAuthUrl + 'register', { firstName, lastName, role, email, password });
 }
 //google auth

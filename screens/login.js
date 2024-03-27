@@ -5,7 +5,7 @@ import { MaterialIcons, Ionicons, FontAwesome5, AntDesign, Entypo, MaterialCommu
 import Variables from "../common/constants";
 import SelectDropdown from "react-native-select-dropdown";
 import SuccessAnimation from "../components/success-animation";
-import { loginWithPassword, sendVerificationCode, verifyCode } from "../services/auth";
+import { loginWithPassword, sendVerificationCode, verifyCode, registerUser } from "../services/auth";
 
 const screens = {
     login: "login",
@@ -17,36 +17,76 @@ const screens = {
     otherState: "otherState"
 }
 
+const passwordErrorMessage = 'Password Must Contain \n 1.Atleast one capital alphabet.\n 2.Atleast one lower alphabet.\n 3.Atleast one number.\n 4.Atleast one special character.\n 5.A length of range [8-15]';
+
 export function LoginComponent() {
     let [currentTab, setCurrentTab] = useState(screens.login);
-    let [email, setEmail] = useState('');
-    let [emailError, setEmailError] = useState('');
+    // login screen variables
+    let [loginEmail, setLoginEmail] = useState('');
+    let [loginEmailError, setLoginEmailError] = useState('');
+    let [loginPassword, setLoginPassword] = useState('');
+    let [loginPasswordError, setLoginPasswordError] = useState('');
+    //send email-otp variables
+    let [community, setCommunity] = useState('');
+    let [communityError, setCommunityError] = useState('');
+    let [oauthEmail, setOauthEmail] = useState('');
+    let [oauthEmailError, setOauthEmailError] = useState('');
+    let [otp, setOtp] = useState('');
+    let [otpError, setOtpError] = useState('');
+    // register screen variables
     let [firstName, setFirstName] = useState('');
     let [firstNameError, setFirstNameError] = useState('');
     let [lastName, setLastName] = useState('');
     let [lastNameError, setLastNameError] = useState('');
     let [role, setRole] = useState('');
     let [roleError, setRoleError] = useState('');
-    let [password, setPassword] = useState('');
+    let [registerPassword, setRegisterPassword] = useState('');
+    let [registerPasswordError, setRegisterPasswordError] = useState('');
     let [verifyPassword, setVerifyPassword] = useState('');
     let [passwordMatchError, setPasswordMatchError] = useState('');
-    let [otp, setOtp] = useState('');
 
     function signIn(id) {
         setCurrentTab(screens.login);
+        setCommunity('');
+        setCommunityError('');
+        setOauthEmail('');
+        setOauthEmailError('');
+        setOtp('');
+        setOtpError('');
+        setFirstName('');
+        setFirstNameError('');
+        setLastName('');
+        setLastNameError('');
+        setRole('');
+        setRoleError('');
+        setRegisterPassword('');
+        setRegisterPasswordError('');
+        setVerifyPassword('');
+        setPasswordMatchError('');
     }
 
     function signUp(id) {
         setCurrentTab(screens.enterEmail);
+        setLoginEmail('');
+        setLoginEmailError('');
+        setLoginPassword('');
+        setLoginPasswordError('');
     }
 
-    function validateEmail(newText) {
+    function isEmailValid(newText) {
         if (newText.match(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-            setEmailError('')
+            return true;
         } else {
-            setEmailError('Invalid Email');
+            return false;
         }
-        setEmail(newText)
+    }
+
+    function isPasswordValid(text) {
+        if (text.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?&^])[A-Za-z\d@.#$!%*?&]{8,15}$/)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function validateOnlyLetters(newText) {
@@ -55,32 +95,33 @@ export function LoginComponent() {
 
     async function login() {
         Keyboard.dismiss();
-        setCurrentTab(screens.loading);
-        const res = await loginWithPassword(email, password);
-        if (res.success) {
-            setCurrentTab(screens.otherState);
+        loginEmailError == '' && loginEmail ? setLoginEmailError('') : setLoginEmailError('Invalid Email');
+        loginPasswordError == '' && loginPassword ? setLoginPasswordError('') : setLoginPasswordError(passwordErrorMessage);
+        if (!loginEmailError && !loginPasswordError) {
+            setCurrentTab(screens.loading);
+            const res = await loginWithPassword(email, password);
+            if (res.success) {
+                setCurrentTab(screens.otherState);
+            }
         }
     }
 
     async function register() {
         Keyboard.dismiss();
-        if (role) {
-            setRoleError('');
-            if (password == verifyPassword) {
-                setCurrentTab(screens.loading);
-                setPasswordMatchError('');
-                const res = await register(firstName, lastName, role, email, password);
-                if (res.success) {
-                    setCurrentTab(screens.success);
-                    setTimeout(() => {
-                        setCurrentTab(screens.otherState);
-                    }, 2000);
-                }
-            } else {
-                setPasswordMatchError(`Passwords don't match!`);
+        roleError == '' && role ? setRoleError('') : setRoleError('Select a role');
+        passwordMatchError == '' && verifyPassword ? setPasswordMatchError('') : setPasswordMatchError(`Passwords don't match!`);
+        firstNameError == '' && firstName ? setFirstNameError('') : setFirstNameError('Invalid First Name');
+        lastNameError == '' && lastName ? setLastNameError('') : setLastNameError('Invalid Last Name');
+        registerPasswordError == '' && registerPassword ? setRegisterPasswordError('') : setRegisterPasswordError(passwordErrorMessage);
+        if (!roleError && !passwordMatchError && !firstNameError && !lastNameError && !registerPasswordError) {
+            setCurrentTab(screens.loading);
+            const res = await registerUser(firstName, lastName, role, oauthEmail, registerPassword);
+            if (res.success) {
+                setCurrentTab(screens.success);
+                setTimeout(() => {
+                    setCurrentTab(screens.otherState);
+                }, 2000);
             }
-        } else {
-            setRoleError('Please select a role');
         }
     }
 
@@ -93,18 +134,25 @@ export function LoginComponent() {
 
     async function sendCode() {
         Keyboard.dismiss();
-        setCurrentTab(screens.loading);
-        const res = await sendVerificationCode(email);
-        if (res.success) {
-            setCurrentTab(screens.verifyCode);
+        oauthEmailError == '' && oauthEmail ? setOauthEmailError('') : setOauthEmailError('Invalid Email');
+        community == '' ? setCommunityError('Select a community') : setCommunityError('');
+        if (community != '' && !oauthEmailError) {
+            setCurrentTab(screens.loading);
+            const res = await sendVerificationCode(oauthEmail);
+            if (res.success) {
+                setCurrentTab(screens.verifyCode);
+            }
         }
     }
 
     async function verifyOtp() {
-        const res = await verifyCode(email, otp);
-        setCurrentTab(screens.loading);
-        if (res.success) {
-            setCurrentTab(screens.register);
+        if (!otpError && otp) {
+            const res = await verifyCode(oauthEmail, otp);
+            setCurrentTab(screens.loading);
+            if (res.success) {
+                setCurrentTab(screens.register);
+                setOtp('');
+            }
         }
     }
 
@@ -143,12 +191,13 @@ export function LoginComponent() {
                                 multiline={false}
                                 selectionColor={Variables.colors.white}
                                 keyboardType="email-address"
-                                value={email}
-                                onChangeText={newText =>
-                                    validateEmail(newText)
-                                }
+                                value={loginEmail}
+                                onChangeText={newText => {
+                                    isEmailValid(newText) ? setLoginEmailError('') : setLoginEmailError('Invalid Email');
+                                    setLoginEmail(newText);
+                                }}
                             />
-                            {emailError.length ? <Text style={styles.errorMessage}>{emailError}</Text> : <></>}
+                            {loginEmailError.length ? <Text style={styles.errorMessage}>{loginEmailError}</Text> : <></>}
                             <FontAwesome5 name="unlock" size={20} color="white" style={styles.icons} />
                             <TextInput
                                 style={styles.credentialInputs}
@@ -158,10 +207,15 @@ export function LoginComponent() {
                                 autoComplete="off"
                                 autoCorrect={false}
                                 multiline={false}
+                                maxLength={15}
                                 selectionColor={Variables.colors.white}
-                                value={password}
-                                onChangeText={newText => setPassword(newText)}
+                                value={loginPassword}
+                                onChangeText={newText => {
+                                    isPasswordValid(newText) ? setLoginPasswordError('') : setLoginPasswordError(passwordErrorMessage);
+                                    setLoginPassword(newText)
+                                }}
                             />
+                            {loginPasswordError.length ? <Text style={styles.errorMessage}>{loginPasswordError}</Text> : <></>}
                             <CommonButton
                                 clicked={login}
                                 text={'Login'}
@@ -175,7 +229,7 @@ export function LoginComponent() {
                         : currentTab == screens.enterEmail ?
                             <View style={styles.inputBox}>
                                 <SelectDropdown buttonStyle={styles.dropDown} data={[{ name: "Velama Community", address: "pragathi nagar", state: "telangana" }, { name: "X community", address: "koti", state: "telanagana" }]}
-                                    onSelect={(selectedItem, index) => { console.log(selectedItem, index) }}
+                                    onSelect={(selectedItem, index) => { console.log(selectedItem, index); setCommunity(selectedItem.name); setCommunityError(''); }}
                                     defaultButtonText="Select Community"
                                     buttonTextAfterSelection={(selectedItem) => { return selectedItem.name }}
                                     rowTextForSelection={(selectedItem) => { return selectedItem.name + selectedItem.address }}
@@ -185,6 +239,7 @@ export function LoginComponent() {
                                     renderDropdownIcon={() => { return <Entypo name="location-pin" size={18} color="black" /> }}
                                     renderSearchInputLeftIcon={() => { return <FontAwesome5 name="search-location" size={18} color="black" /> }}
                                 ></SelectDropdown>
+                                {communityError.length ? <Text style={styles.errorMessage}>{communityError}</Text> : <></>}
                                 <MaterialIcons name="email" size={20} color="white" style={styles.icons} />
                                 <TextInput
                                     style={styles.credentialInputs}
@@ -196,10 +251,13 @@ export function LoginComponent() {
                                     multiline={false}
                                     selectionColor={Variables.colors.white}
                                     keyboardType="email-address"
-                                    value={email}
-                                    onChangeText={newText => validateEmail(newText)}
+                                    value={oauthEmail}
+                                    onChangeText={newText => {
+                                        isEmailValid(newText) ? setOauthEmailError('') : setOauthEmailError('Invalid Email');
+                                        setOauthEmail(newText);
+                                    }}
                                 />
-                                {emailError.length ? <Text style={styles.errorMessage}>{emailError}</Text> : <></>}
+                                {oauthEmailError.length ? <Text style={styles.errorMessage}>{oauthEmailError}</Text> : <></>}
                                 <CommonButton
                                     clicked={sendCode}
                                     text={'Send Verification Code'}
@@ -230,12 +288,17 @@ export function LoginComponent() {
                                         autoCapitalize="none"
                                         autoComplete="off"
                                         autoCorrect={false}
+                                        maxLength={6}
                                         multiline={false}
                                         selectionColor={Variables.colors.white}
                                         keyboardType='number-pad'
                                         value={otp}
-                                        onChangeText={code => setOtp(code)}
+                                        onChangeText={code => {
+                                            /^\d+$/.test(code) && code.length == 6 ? setOtpError('') : setOtpError('OTP should be 6 digit number')
+                                            setOtp(code)
+                                        }}
                                     />
+                                    {otpError.length ? <Text style={styles.errorMessage}>{otpError}</Text> : <></>}
                                     <CommonButton
                                         clicked={verifyOtp}
                                         text={'Verify'}
@@ -317,9 +380,13 @@ export function LoginComponent() {
                                                     multiline={false}
                                                     selectionColor={Variables.colors.white}
                                                     keyboardType="ascii-capable"
-                                                    value={password}
-                                                    onChangeText={newText => setPassword(newText)}
+                                                    value={registerPassword}
+                                                    onChangeText={newText => {
+                                                        setRegisterPassword(newText);
+                                                        isPasswordValid(newText) ? setRegisterPasswordError('') : setRegisterPasswordError(passwordErrorMessage)
+                                                    }}
                                                 />
+                                                {registerPasswordError.length ? <Text style={styles.errorMessage}>{registerPasswordError}</Text> : <></>}
                                                 <FontAwesome5 name="unlock" size={20} color="white" style={styles.icons} />
                                                 <TextInput
                                                     style={styles.credentialInputs}
@@ -332,7 +399,10 @@ export function LoginComponent() {
                                                     selectionColor={Variables.colors.white}
                                                     keyboardType="ascii-capable"
                                                     value={verifyPassword}
-                                                    onChangeText={newText => setVerifyPassword(newText)}
+                                                    onChangeText={newText => {
+                                                        setVerifyPassword(newText);
+                                                        registerPassword === newText ? setPasswordMatchError('') : setPasswordMatchError(`Passwords don't match`)
+                                                    }}
                                                 />
                                                 {passwordMatchError.length ? <Text style={styles.errorMessage}>{passwordMatchError}</Text> : <></>}
                                             </View>
@@ -421,8 +491,8 @@ const styles = StyleSheet.create({
     icons: {
         color: Variables.colors.white,
         position: 'relative',
-        top: '15%',
-        left: '5%'
+        top: 50,
+        left: 20
     },
     submitButton: {
         backgroundColor: Variables.colors.green,
